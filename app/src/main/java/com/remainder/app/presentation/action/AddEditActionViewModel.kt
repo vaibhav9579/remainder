@@ -12,11 +12,13 @@ import com.remainder.app.domain.usecase.action.AddActionUseCase
 import com.remainder.app.domain.usecase.action.GetActionByIdUseCase
 import com.remainder.app.domain.usecase.action.UpdateActionUseCase
 import com.remainder.app.domain.usecase.category.GetCategoriesUseCase
+import com.remainder.app.domain.usecase.settings.GetSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -46,6 +48,7 @@ class AddEditActionViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     getActionById: GetActionByIdUseCase,
     getCategories: GetCategoriesUseCase,
+    getSettings: GetSettingsUseCase,
     private val addAction: AddActionUseCase,
     private val updateAction: UpdateActionUseCase,
 ) : ViewModel() {
@@ -81,6 +84,11 @@ class AddEditActionViewModel @Inject constructor(
                         }
                     }
                 }
+            }
+        } else {
+            viewModelScope.launch {
+                val defaultOffset = getSettings().first().defaultReminderOffset
+                _uiState.update { it.copy(reminderOffset = defaultOffset) }
             }
         }
     }

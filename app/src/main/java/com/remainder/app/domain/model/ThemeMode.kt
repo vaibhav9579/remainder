@@ -1,4 +1,4 @@
-package com.remainder.app.ui.theme
+package com.remainder.app.domain.model
 
 enum class ThemeMode {
     LIGHT,

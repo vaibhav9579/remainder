@@ -3,6 +3,7 @@ package com.remainder.app.presentation.common
 import com.remainder.app.domain.model.Priority
 import com.remainder.app.domain.model.ReminderOffset
 import com.remainder.app.domain.model.RepeatType
+import com.remainder.app.domain.model.ThemeMode
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -29,6 +30,12 @@ fun ReminderOffset.displayLabel(): String = when (this) {
     ReminderOffset.MIN_30 -> "30 minutes before"
     ReminderOffset.HOUR_1 -> "1 hour before"
     ReminderOffset.DAY_1 -> "1 day before"
+}
+
+fun ThemeMode.displayLabel(): String = when (this) {
+    ThemeMode.LIGHT -> "Light"
+    ThemeMode.DARK -> "Dark"
+    ThemeMode.SYSTEM -> "System default"
 }
 
 private val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
