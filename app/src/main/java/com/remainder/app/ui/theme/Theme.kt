@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 
 private val RemainderLightColorScheme = lightColorScheme(
     primary = LightPrimary,
@@ -34,14 +35,31 @@ private val RemainderDarkColorScheme = darkColorScheme(
 
 @Composable
 fun RemainderTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) RemainderDarkColorScheme else RemainderLightColorScheme
+    val darkTheme = when (themeMode) {
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = RemainderTypography,
-        content = content
-    )
+    val colorScheme = if (darkTheme) RemainderDarkColorScheme else RemainderLightColorScheme
+    val extendedColors = if (darkTheme) DarkExtendedColors else LightExtendedColors
+
+    CompositionLocalProvider(LocalExtendedColors provides extendedColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = RemainderTypography,
+            shapes = RemainderShapes,
+            content = content
+        )
+    }
+}
+
+/** Accessor for design tokens outside MaterialTheme's own slots. */
+object RemainderExtendedTheme {
+    val colors: ExtendedColors
+        @Composable
+        get() = LocalExtendedColors.current
 }
