@@ -13,10 +13,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val initialActionId = intent?.getLongExtra(EXTRA_OPEN_ACTION_ID, -1L)?.takeIf { it != -1L }
         setContent {
             RemainderTheme {
-                RemainderApp()
+                RemainderApp(initialActionId = initialActionId)
             }
         }
+    }
+
+    companion object {
+        const val EXTRA_OPEN_ACTION_ID = "extra_open_action_id"
     }
 }
