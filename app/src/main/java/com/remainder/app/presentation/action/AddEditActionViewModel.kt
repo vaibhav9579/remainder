@@ -14,6 +14,7 @@ import com.remainder.app.domain.usecase.action.UpdateActionUseCase
 import com.remainder.app.domain.usecase.category.GetCategoriesUseCase
 import com.remainder.app.domain.media.VoiceNotePlayer
 import com.remainder.app.domain.media.VoiceNoteRecorder
+import com.remainder.app.domain.quickadd.QuickAddParser
 import com.remainder.app.domain.usecase.settings.GetSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -111,6 +112,24 @@ class AddEditActionViewModel @Inject constructor(
     fun onRepeatChange(value: RepeatType) = _uiState.update { it.copy(repeatType = value) }
     fun onCategoryChange(value: Long?) = _uiState.update { it.copy(categoryId = value) }
     fun onPriorityChange(value: Priority) = _uiState.update { it.copy(priority = value) }
+
+    /**
+     * Pre-fills the form from free text (e.g. "Pay rent on the 1st at 9am"). Never saves on its
+     * own — the user still reviews and taps Save, since a silent misparse could otherwise create
+     * a wrong reminder.
+     */
+    fun onQuickAddParsed(rawText: String) {
+        val result = QuickAddParser.parse(rawText)
+        _uiState.update {
+            it.copy(
+                title = result.title.ifBlank { rawText.trim() },
+                scheduledDate = result.date ?: it.scheduledDate,
+                scheduledTime = result.time ?: it.scheduledTime,
+                titleError = null,
+                dateTimeError = null,
+            )
+        }
+    }
 
     fun onStartRecording() {
         deleteUnsavedDraftVoiceNote()

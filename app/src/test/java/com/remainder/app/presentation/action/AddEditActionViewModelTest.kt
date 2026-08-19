@@ -150,6 +150,27 @@ class AddEditActionViewModelTest {
     }
 
     @Test
+    fun onQuickAddParsed_prefillsFormWithoutSaving() {
+        val viewModel = createViewModel()
+
+        viewModel.onQuickAddParsed("Pay rent on the 1st at 9am")
+
+        assertEquals("Pay rent", viewModel.uiState.value.title)
+        assertEquals(1, viewModel.uiState.value.scheduledDate.dayOfMonth)
+        assertEquals(9, viewModel.uiState.value.scheduledTime.hour)
+        assertTrue(actionRepository.currentActions.isEmpty())
+    }
+
+    @Test
+    fun onQuickAddParsed_withNoRecognizableDateOrTime_usesFullTextAsTitle() {
+        val viewModel = createViewModel()
+
+        viewModel.onQuickAddParsed("Buy groceries")
+
+        assertEquals("Buy groceries", viewModel.uiState.value.title)
+    }
+
+    @Test
     fun abandoningNewAction_deletesTheDraftVoiceNoteFile() {
         val viewModel = createViewModel()
         viewModel.onStartRecording()
