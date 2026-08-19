@@ -5,18 +5,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.weight
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.remainder.app.R
 import com.remainder.app.domain.model.Action
 import com.remainder.app.domain.model.Priority
 import com.remainder.app.domain.model.ReminderOffset
@@ -75,6 +80,15 @@ fun ActionCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            if (action.voiceNoteUri != null) {
+                Spacer(Modifier.width(Spacing.sm))
+                Icon(
+                    painter = painterResource(R.drawable.ic_mic),
+                    contentDescription = "Has a voice note",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
             Spacer(Modifier.width(Spacing.sm))
             PriorityIndicator(priority = action.priority)
         }
@@ -96,6 +110,7 @@ private fun ActionCardPreview() {
                 priority = Priority.HIGH,
                 createdAt = Instant.now(),
                 updatedAt = Instant.now(),
+                voiceNoteUri = "/voice_notes/example.m4a",
             ),
             categoryName = "Work",
             onClick = {},
