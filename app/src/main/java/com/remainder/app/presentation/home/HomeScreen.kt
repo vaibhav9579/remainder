@@ -1,20 +1,29 @@
 package com.remainder.app.presentation.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -24,13 +33,13 @@ import com.remainder.app.ui.components.ActionCard
 import com.remainder.app.ui.components.RemainderCard
 import com.remainder.app.ui.components.RemainderEmptyState
 import com.remainder.app.ui.components.RemainderSectionHeader
-import com.remainder.app.ui.components.RemainderTextField
 import com.remainder.app.ui.theme.Spacing
 import java.time.LocalTime
 
 @Composable
 fun HomeScreen(
     onOpenAction: (Long) -> Unit,
+    onOpenSearch: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -45,11 +54,7 @@ fun HomeScreen(
         Spacer(Modifier.height(Spacing.xl))
         HomeHeader()
         Spacer(Modifier.height(Spacing.lg))
-        RemainderTextField(
-            value = "",
-            onValueChange = {},
-            placeholder = "Search actions...",
-        )
+        SearchBarLauncher(onClick = onOpenSearch)
         Spacer(Modifier.height(Spacing.xl))
         TodaySummaryCard(
             totalToday = uiState.todayActions.size,
@@ -104,6 +109,37 @@ private fun greetingForHour(hour: Int): String = when (hour) {
     in 0..11 -> "Good morning"
     in 12..16 -> "Good afternoon"
     else -> "Good evening"
+}
+
+@Composable
+private fun SearchBarLauncher(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .padding(horizontal = Spacing.md, vertical = Spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.width(Spacing.sm))
+            Text(
+                text = "Search actions...",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
 }
 
 @Composable

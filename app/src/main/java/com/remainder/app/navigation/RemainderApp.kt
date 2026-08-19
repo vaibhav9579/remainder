@@ -37,6 +37,7 @@ import com.remainder.app.presentation.action.AddActionScreen
 import com.remainder.app.presentation.calendar.CalendarScreen
 import com.remainder.app.presentation.completed.CompletedScreen
 import com.remainder.app.presentation.home.HomeScreen
+import com.remainder.app.presentation.search.SearchScreen
 import com.remainder.app.presentation.settings.SettingsScreen
 import com.remainder.app.ui.theme.FabShape
 
@@ -53,7 +54,11 @@ private val bottomNavItems = listOf(
     BottomNavItem(Destination.Settings, "Settings", Icons.Default.Settings),
 )
 
-private val chromeHiddenRoutes = setOf(Destination.AddAction.route, Destination.ActionDetails.route)
+private val chromeHiddenRoutes = setOf(
+    Destination.AddAction.route,
+    Destination.ActionDetails.route,
+    Destination.Search.route,
+)
 
 @Composable
 fun RemainderApp(initialActionId: Long? = null) {
@@ -127,6 +132,7 @@ fun RemainderApp(initialActionId: Long? = null) {
             composable(Destination.Home.route) {
                 HomeScreen(
                     onOpenAction = { id -> navController.navigate(Destination.ActionDetails.createRoute(id)) },
+                    onOpenSearch = { navController.navigate(Destination.Search.route) },
                 )
             }
             composable(Destination.Calendar.route) {
@@ -140,6 +146,12 @@ fun RemainderApp(initialActionId: Long? = null) {
                 )
             }
             composable(Destination.Settings.route) { SettingsScreen() }
+            composable(Destination.Search.route) {
+                SearchScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenAction = { id -> navController.navigate(Destination.ActionDetails.createRoute(id)) },
+                )
+            }
             composable(
                 route = Destination.AddAction.route,
                 arguments = listOf(

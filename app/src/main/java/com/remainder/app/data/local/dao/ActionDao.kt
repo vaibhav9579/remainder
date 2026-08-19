@@ -28,7 +28,9 @@ interface ActionDao {
 
     @Query(
         "SELECT * FROM actions WHERE title LIKE '%' || :query || '%' " +
-            "OR notes LIKE '%' || :query || '%' ORDER BY scheduledDate, scheduledTime",
+            "OR notes LIKE '%' || :query || '%' " +
+            "OR categoryId IN (SELECT id FROM categories WHERE name LIKE '%' || :query || '%') " +
+            "ORDER BY scheduledDate, scheduledTime",
     )
     fun searchActions(query: String): Flow<List<ActionEntity>>
 
