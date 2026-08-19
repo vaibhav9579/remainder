@@ -50,6 +50,7 @@ class ActionDaoTest {
         scheduledDate: LocalDate = LocalDate.of(2026, 6, 15),
         categoryId: Long? = null,
         isCompleted: Boolean = false,
+        voiceNoteUri: String? = null,
     ) = ActionEntity(
         title = title,
         notes = notes,
@@ -63,7 +64,17 @@ class ActionDaoTest {
         completedAt = if (isCompleted) Instant.EPOCH else null,
         createdAt = Instant.EPOCH,
         updatedAt = Instant.EPOCH,
+        voiceNoteUri = voiceNoteUri,
     )
+
+    @Test
+    fun insert_withVoiceNoteUri_roundTripsCorrectly() = runBlocking {
+        val id = actionDao.insert(entity(title = "Voice memo", voiceNoteUri = "/data/voice_notes/voice_1.m4a"))
+
+        val loaded = actionDao.getActionById(id).first()
+
+        assertEquals("/data/voice_notes/voice_1.m4a", loaded?.voiceNoteUri)
+    }
 
     @Test
     fun insertAndGetById_returnsSameAction() = runBlocking {

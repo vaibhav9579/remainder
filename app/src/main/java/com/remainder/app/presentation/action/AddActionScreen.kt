@@ -1,17 +1,34 @@
 package com.remainder.app.presentation.action
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
@@ -21,9 +38,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.remainder.app.R
 import com.remainder.app.domain.model.Category
 import com.remainder.app.domain.model.Priority
 import com.remainder.app.domain.model.ReminderOffset
@@ -84,6 +108,17 @@ fun AddActionScreen(
                 onValueChange = viewModel::onNotesChange,
                 label = "Notes (optional)",
                 singleLine = false,
+            )
+            Spacer(Modifier.height(Spacing.lg))
+            VoiceNoteField(
+                voiceNoteUri = uiState.voiceNoteUri,
+                isRecording = uiState.isRecording,
+                isPlaying = uiState.isPlayingVoiceNote,
+                onStartRecording = viewModel::onStartRecording,
+                onStopRecording = viewModel::onStopRecording,
+                onPlay = viewModel::onPlayVoiceNote,
+                onStopPlayback = viewModel::onStopPlayback,
+                onDelete = viewModel::onDeleteVoiceNote,
             )
             Spacer(Modifier.height(Spacing.lg))
             RemainderSelectableField(
@@ -232,5 +267,107 @@ fun AddActionScreen(
             onOptionSelected = viewModel::onPriorityChange,
             onDismiss = { showPriorityPicker = false },
         )
+    }
+}
+
+@Composable
+private fun VoiceNoteField(
+    voiceNoteUri: String?,
+    isRecording: Boolean,
+    isPlaying: Boolean,
+    onStartRecording: () -> Unit,
+    onStopRecording: () -> Unit,
+    onPlay: () -> Unit,
+    onStopPlayback: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted -> if (granted) onStartRecording() }
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = "Voice note (optional)",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(Spacing.xs))
+        Surface(
+            shape = MaterialTheme.shapes.small,
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .padding(horizontal = Spacing.md, vertical = Spacing.sm),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                when {
+                    isRecording -> {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.error),
+                            )
+                            Spacer(Modifier.width(Spacing.sm))
+                            Text("Recording…", style = MaterialTheme.typography.bodyLarge)
+                        }
+                        IconButton(onClick = onStopRecording) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_stop),
+                                contentDescription = "Stop recording",
+                            )
+                        }
+                    }
+                    voiceNoteUri != null -> {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = if (isPlaying) onStopPlayback else onPlay) {
+                                Icon(
+                                    painter = painterResource(
+                                        if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play_arrow,
+                                    ),
+                                    contentDescription = if (isPlaying) "Stop playback" else "Play voice note",
+                                )
+                            }
+                            Spacer(Modifier.width(Spacing.sm))
+                            Text("Voice note recorded", style = MaterialTheme.typography.bodyLarge)
+                        }
+                        RemainderTextButton(text = "Remove", onClick = onDelete)
+                    }
+                    else -> {
+                        Text(
+                            text = "No voice note",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        IconButton(
+                            onClick = {
+                                val granted = ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.RECORD_AUDIO,
+                                ) == PackageManager.PERMISSION_GRANTED
+                                if (granted) {
+                                    onStartRecording()
+                                } else {
+                                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                }
+                            },
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_mic),
+                                contentDescription = "Record voice note",
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }

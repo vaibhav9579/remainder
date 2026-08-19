@@ -71,6 +71,17 @@ routing around the proxy, or swapping in unofficial mirrors.
   — keep it behind a dedicated `AlarmScheduler`, called from use cases, never
   from Composables or directly from DAOs.
 - Recurrence is a typed model/enum, not a free-form cron-like string.
+- Voice notes (post-V1 addition) are optional audio attached to an Action —
+  `Action.voiceNoteUri` stores an absolute path under app-private
+  `filesDir/voice_notes/`, recorded/played via the `VoiceNoteRecorder`/
+  `VoiceNotePlayer` domain interfaces (Android `MediaRecorder`/`MediaPlayer`
+  impls in the top-level `media` package, same pattern as `AlarmScheduler`).
+  `AddEditActionViewModel` owns careful cleanup: an abandoned draft
+  recording is deleted, but an existing action's persisted file is only
+  deleted once a replacement is actually saved — never on `onCleared()`.
+  This was the first schema change since Phase 3, via a real `Migration`
+  (`MIGRATION_1_2`), not `fallbackToDestructiveMigration`; any future
+  schema change should follow the same pattern.
 
 ## Release
 

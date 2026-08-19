@@ -17,6 +17,7 @@ fun ActionEntity.toDomain() = Action(
     completedAt = completedAt,
     createdAt = createdAt,
     updatedAt = updatedAt,
+    voiceNoteUri = voiceNoteUri,
 )
 
 fun Action.toEntity() = ActionEntity(
@@ -33,6 +34,7 @@ fun Action.toEntity() = ActionEntity(
     completedAt = completedAt,
     createdAt = createdAt,
     updatedAt = updatedAt,
+    voiceNoteUri = voiceNoteUri,
 )
 
 fun CategoryEntity.toDomain() = Category(

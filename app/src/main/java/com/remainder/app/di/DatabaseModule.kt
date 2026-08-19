@@ -7,6 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.remainder.app.data.local.dao.ActionDao
 import com.remainder.app.data.local.dao.CategoryDao
 import com.remainder.app.data.local.database.DefaultCategories
+import com.remainder.app.data.local.database.MIGRATION_1_2
 import com.remainder.app.data.local.database.RemainderDatabase
 import dagger.Module
 import dagger.Provides
@@ -38,6 +39,7 @@ object DatabaseModule {
                     }
                 }
             })
+            .addMigrations(MIGRATION_1_2)
             .build()
     }
 

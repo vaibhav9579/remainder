@@ -41,4 +41,5 @@ data class ActionEntity(
     val completedAt: Instant?,
     val createdAt: Instant,
     val updatedAt: Instant,
+    val voiceNoteUri: String? = null,
 )

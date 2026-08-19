@@ -10,7 +10,7 @@ import com.remainder.app.data.local.entity.CategoryEntity
 
 @Database(
     entities = [ActionEntity::class, CategoryEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)

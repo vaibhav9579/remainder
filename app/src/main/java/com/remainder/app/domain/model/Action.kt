@@ -18,4 +18,5 @@ data class Action(
     val completedAt: Instant? = null,
     val createdAt: Instant,
     val updatedAt: Instant,
+    val voiceNoteUri: String? = null,
 )

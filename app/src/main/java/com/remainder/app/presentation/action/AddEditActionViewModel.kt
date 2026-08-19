@@ -12,6 +12,8 @@ import com.remainder.app.domain.usecase.action.AddActionUseCase
 import com.remainder.app.domain.usecase.action.GetActionByIdUseCase
 import com.remainder.app.domain.usecase.action.UpdateActionUseCase
 import com.remainder.app.domain.usecase.category.GetCategoriesUseCase
+import com.remainder.app.domain.media.VoiceNotePlayer
+import com.remainder.app.domain.media.VoiceNoteRecorder
 import com.remainder.app.domain.usecase.settings.GetSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +39,9 @@ data class AddEditActionUiState(
     val repeatType: RepeatType = RepeatType.NEVER,
     val categoryId: Long? = null,
     val priority: Priority = Priority.MEDIUM,
+    val voiceNoteUri: String? = null,
+    val isRecording: Boolean = false,
+    val isPlayingVoiceNote: Boolean = false,
     val existingAction: Action? = null,
     val isEditMode: Boolean = false,
     val titleError: String? = null,
@@ -51,6 +56,8 @@ class AddEditActionViewModel @Inject constructor(
     getSettings: GetSettingsUseCase,
     private val addAction: AddActionUseCase,
     private val updateAction: UpdateActionUseCase,
+    private val voiceNoteRecorder: VoiceNoteRecorder,
+    private val voiceNotePlayer: VoiceNotePlayer,
 ) : ViewModel() {
 
     private val actionId: Long? =
@@ -58,6 +65,8 @@ class AddEditActionViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(AddEditActionUiState())
     val uiState: StateFlow<AddEditActionUiState> = _uiState.asStateFlow()
+
+    private var didSave = false
 
     val categories: StateFlow<List<Category>> = getCategories()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -78,6 +87,7 @@ class AddEditActionViewModel @Inject constructor(
                                 repeatType = action.repeatType,
                                 categoryId = action.categoryId,
                                 priority = action.priority,
+                                voiceNoteUri = action.voiceNoteUri,
                                 existingAction = action,
                                 isEditMode = true,
                             )
@@ -102,6 +112,44 @@ class AddEditActionViewModel @Inject constructor(
     fun onCategoryChange(value: Long?) = _uiState.update { it.copy(categoryId = value) }
     fun onPriorityChange(value: Priority) = _uiState.update { it.copy(priority = value) }
 
+    fun onStartRecording() {
+        deleteUnsavedDraftVoiceNote()
+        voiceNoteRecorder.start()
+        _uiState.update { it.copy(isRecording = true, voiceNoteUri = null) }
+    }
+
+    fun onStopRecording() {
+        val path = voiceNoteRecorder.stop()
+        _uiState.update { it.copy(isRecording = false, voiceNoteUri = path) }
+    }
+
+    fun onDeleteVoiceNote() {
+        deleteUnsavedDraftVoiceNote()
+        _uiState.update { it.copy(voiceNoteUri = null) }
+    }
+
+    fun onPlayVoiceNote() {
+        val path = _uiState.value.voiceNoteUri ?: return
+        _uiState.update { it.copy(isPlayingVoiceNote = true) }
+        voiceNotePlayer.play(path) {
+            _uiState.update { it.copy(isPlayingVoiceNote = false) }
+        }
+    }
+
+    fun onStopPlayback() {
+        voiceNotePlayer.stop()
+        _uiState.update { it.copy(isPlayingVoiceNote = false) }
+    }
+
+    /** Deletes the current draft file only if it isn't the action's already-persisted voice note. */
+    private fun deleteUnsavedDraftVoiceNote() {
+        val current = _uiState.value.voiceNoteUri
+        val original = _uiState.value.existingAction?.voiceNoteUri
+        if (current != null && current != original) {
+            voiceNoteRecorder.deleteFile(current)
+        }
+    }
+
     fun save(onSaved: () -> Unit) {
         val state = _uiState.value
         if (state.title.isBlank()) {
@@ -117,6 +165,9 @@ class AddEditActionViewModel @Inject constructor(
         viewModelScope.launch {
             val existing = state.existingAction
             if (existing != null) {
+                if (existing.voiceNoteUri != null && existing.voiceNoteUri != state.voiceNoteUri) {
+                    voiceNoteRecorder.deleteFile(existing.voiceNoteUri)
+                }
                 updateAction(
                     existing.copy(
                         title = state.title.trim(),
@@ -127,6 +178,7 @@ class AddEditActionViewModel @Inject constructor(
                         repeatType = state.repeatType,
                         categoryId = state.categoryId,
                         priority = state.priority,
+                        voiceNoteUri = state.voiceNoteUri,
                     ),
                 )
             } else {
@@ -140,12 +192,21 @@ class AddEditActionViewModel @Inject constructor(
                         repeatType = state.repeatType,
                         categoryId = state.categoryId,
                         priority = state.priority,
+                        voiceNoteUri = state.voiceNoteUri,
                         createdAt = Instant.now(),
                         updatedAt = Instant.now(),
                     ),
                 )
             }
+            didSave = true
             onSaved()
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        voiceNotePlayer.stop()
+        if (_uiState.value.isRecording) voiceNoteRecorder.cancel()
+        if (!didSave) deleteUnsavedDraftVoiceNote()
     }
 }
