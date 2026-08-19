@@ -129,7 +129,11 @@ fun RemainderApp(initialActionId: Long? = null) {
                     onOpenAction = { id -> navController.navigate(Destination.ActionDetails.createRoute(id)) },
                 )
             }
-            composable(Destination.Calendar.route) { CalendarScreen() }
+            composable(Destination.Calendar.route) {
+                CalendarScreen(
+                    onOpenAction = { id -> navController.navigate(Destination.ActionDetails.createRoute(id)) },
+                )
+            }
             composable(Destination.Completed.route) {
                 CompletedScreen(
                     onOpenAction = { id -> navController.navigate(Destination.ActionDetails.createRoute(id)) },
