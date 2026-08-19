@@ -46,7 +46,7 @@ spec for feature-level detail when implementing a given phase.
 9. Settings — theme, notification/reminder preferences
 10. Quality pass — edge cases, accessibility, empty/error states, polish
 11. Testing — unit, DB, reminder, Compose UI tests
-12. Release — versioning, signing config, AAB/APK
+12. Release — versioning, signing config, AAB/APK, release readiness
 
 ## Known environment constraint (this sandbox only)
 
@@ -71,3 +71,23 @@ routing around the proxy, or swapping in unofficial mirrors.
   — keep it behind a dedicated `AlarmScheduler`, called from use cases, never
   from Composables or directly from DAOs.
 - Recurrence is a typed model/enum, not a free-form cron-like string.
+
+## Release
+
+- Release signing reads from a local `keystore.properties` (copy
+  `keystore.properties.example`, fill in your own keystore — both the real
+  properties file and any `.jks`/`.keystore` file are gitignored). Never
+  commit a real keystore or its credentials; without `keystore.properties`
+  present, release builds simply come out unsigned rather than failing.
+- Release builds have `isMinifyEnabled`/`isShrinkResources` on. Room, Hilt,
+  and Compose all ship their own consumer ProGuard rules, so
+  `proguard-rules.pro` is empty by default — only add rules there once a
+  real minified build surfaces something that needs keeping.
+- Bump `versionCode` (always) and `versionName` together for every release;
+  `versionCode` must strictly increase for Play Store uploads.
+- `./gradlew bundleRelease` produces the AAB for Play Store submission;
+  `./gradlew assembleRelease` produces a sideloadable APK. Both need to be
+  verified in Android Studio or CI — this sandbox cannot run a full build
+  (see the environment constraint above), and a minified release build in
+  particular needs a real device/emulator smoke test before shipping, since
+  R8 issues don't show up any other way.

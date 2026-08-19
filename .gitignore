@@ -15,3 +15,8 @@ app/debug/
 *.ap_
 *.dex
 *.class
+
+# Release signing — never commit a real keystore or its credentials.
+keystore.properties
+*.jks
+*.keystore
