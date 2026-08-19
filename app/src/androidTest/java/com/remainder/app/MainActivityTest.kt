@@ -1,6 +1,7 @@
 package com.remainder.app
 
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
@@ -14,7 +15,12 @@ class MainActivityTest {
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
     @Test
-    fun appTitle_isDisplayed() {
-        composeTestRule.onNodeWithText("Remainder").assertExists()
+    fun homeScreen_isStartDestination() {
+        composeTestRule.onNodeWithText("Today's Actions").assertExists()
+    }
+
+    @Test
+    fun addActionFab_isDisplayed() {
+        composeTestRule.onNodeWithContentDescription("Add action").assertExists()
     }
 }
