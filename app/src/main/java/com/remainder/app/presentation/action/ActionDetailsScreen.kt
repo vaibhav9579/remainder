@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.remainder.app.domain.model.RepeatType
 import com.remainder.app.presentation.common.displayLabel
 import com.remainder.app.ui.components.RemainderEmptyState
 import com.remainder.app.ui.components.RemainderPrimaryButton
@@ -73,7 +74,12 @@ fun ActionDetailsScreen(
                 if (action.isCompleted) {
                     RemainderPrimaryButton(text = "Restore", onClick = { viewModel.restore() })
                 } else {
-                    RemainderPrimaryButton(text = "Mark as Complete", onClick = { viewModel.complete() })
+                    val completeLabel = if (action.repeatType == RepeatType.NEVER) {
+                        "Mark as Complete"
+                    } else {
+                        "Complete & Reschedule"
+                    }
+                    RemainderPrimaryButton(text = completeLabel, onClick = { viewModel.complete() })
                 }
                 Spacer(Modifier.height(Spacing.md))
                 RemainderTextButton(text = "Edit", onClick = { onEdit(action.id) })
