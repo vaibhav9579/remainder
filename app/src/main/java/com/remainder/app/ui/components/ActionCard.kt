@@ -1,5 +1,6 @@
 package com.remainder.app.ui.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +13,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import com.remainder.app.domain.model.Action
@@ -33,20 +36,35 @@ fun ActionCard(
     onToggleComplete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val titleColor by animateColorAsState(
+        targetValue = if (action.isCompleted) {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        },
+        label = "actionCardTitleColor",
+    )
+
     RemainderCard(modifier = modifier, onClick = onClick) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = action.isCompleted, onCheckedChange = { onToggleComplete() })
+            Checkbox(
+                checked = action.isCompleted,
+                onCheckedChange = { onToggleComplete() },
+                modifier = Modifier.semantics {
+                    contentDescription = if (action.isCompleted) {
+                        "Mark ${action.title} as not complete"
+                    } else {
+                        "Mark ${action.title} as complete"
+                    }
+                },
+            )
             Spacer(Modifier.width(Spacing.sm))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = action.title,
                     style = MaterialTheme.typography.titleMedium,
                     textDecoration = if (action.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
-                    color = if (action.isCompleted) {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
+                    color = titleColor,
                 )
                 Spacer(Modifier.height(Spacing.xs))
                 val metadata = listOfNotNull(action.scheduledTime.displayLabel(), categoryName)

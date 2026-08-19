@@ -46,6 +46,7 @@ fun CompletedScreen(
                         categoryName = action.categoryId?.let { uiState.categoriesById[it]?.name },
                         onClick = { onOpenAction(action.id) },
                         onToggleComplete = { viewModel.onRestore(action) },
+                        modifier = Modifier.animateItem(),
                     )
                 }
             }

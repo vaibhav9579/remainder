@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ActionDetailsUiState(
+    val isLoading: Boolean = true,
     val action: Action? = null,
     val categoryName: String? = null,
 )
@@ -39,6 +40,7 @@ class ActionDetailsViewModel @Inject constructor(
         getCategories(),
     ) { action, categories ->
         ActionDetailsUiState(
+            isLoading = false,
             action = action,
             categoryName = action?.categoryId?.let { id -> categories.find { it.id == id }?.name },
         )

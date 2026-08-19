@@ -42,10 +42,12 @@ fun ActionDetailsScreen(
         RemainderTopAppBar(title = "Action Details", onBack = onBack)
         val action = uiState.action
         if (action == null) {
-            RemainderEmptyState(
-                message = "This action no longer exists.",
-                modifier = Modifier.fillMaxSize(),
-            )
+            if (!uiState.isLoading) {
+                RemainderEmptyState(
+                    message = "This action no longer exists.",
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         } else {
             Column(
                 modifier = Modifier

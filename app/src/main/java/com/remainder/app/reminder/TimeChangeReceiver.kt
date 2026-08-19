@@ -10,13 +10,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * A previously-scheduled alarm's trigger instant can point at the wrong
+ * wall-clock time once the device's time zone changes (e.g. after travel) or
+ * the user manually sets the clock — both reschedule every pending alarm.
+ */
 @AndroidEntryPoint
-class BootReceiver : BroadcastReceiver() {
+class TimeChangeReceiver : BroadcastReceiver() {
 
     @Inject lateinit var rescheduleAllReminders: RescheduleAllRemindersUseCase
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+        if (intent.action != Intent.ACTION_TIMEZONE_CHANGED && intent.action != Intent.ACTION_TIME_CHANGED) return
 
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {

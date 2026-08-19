@@ -147,7 +147,9 @@ private fun MonthGrid(
     onSelectDate: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val today = remember { LocalDate.now() }
+    // Not `remember`-ed: recomputed each recomposition so the "today" ring
+    // doesn't go stale if the screen stays composed across midnight.
+    val today = LocalDate.now()
     val days = remember(month, firstDayOfWeek) { buildMonthGrid(month, firstDayOfWeek) }
 
     Column(modifier = modifier.fillMaxWidth()) {

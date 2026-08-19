@@ -98,6 +98,7 @@ fun SearchScreen(
                             },
                             onClick = { onOpenAction(action.id) },
                             onToggleComplete = { viewModel.onToggleComplete(action) },
+                            modifier = Modifier.animateItem(),
                         )
                     }
                 }
