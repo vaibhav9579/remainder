@@ -18,10 +18,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.remainder.app.presentation.action.ActionDetailsScreen
 import com.remainder.app.presentation.action.AddActionScreen
 import com.remainder.app.presentation.calendar.CalendarScreen
 import com.remainder.app.presentation.completed.CompletedScreen
@@ -42,11 +45,13 @@ private val bottomNavItems = listOf(
     BottomNavItem(Destination.Settings, "Settings", Icons.Default.Settings),
 )
 
+private val chromeHiddenRoutes = setOf(Destination.AddAction.route, Destination.ActionDetails.route)
+
 @Composable
 fun RemainderApp() {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-    val showChrome = currentRoute != Destination.AddAction.route
+    val showChrome = currentRoute !in chromeHiddenRoutes
 
     Scaffold(
         bottomBar = {
@@ -74,7 +79,7 @@ fun RemainderApp() {
         floatingActionButton = {
             if (showChrome) {
                 FloatingActionButton(
-                    onClick = { navController.navigate(Destination.AddAction.route) },
+                    onClick = { navController.navigate(Destination.AddAction.createRoute()) },
                     shape = FabShape,
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -89,14 +94,42 @@ fun RemainderApp() {
             startDestination = Destination.Home.route,
             modifier = Modifier.padding(innerPadding),
         ) {
-            composable(Destination.Home.route) { HomeScreen() }
+            composable(Destination.Home.route) {
+                HomeScreen(
+                    onOpenAction = { id -> navController.navigate(Destination.ActionDetails.createRoute(id)) },
+                )
+            }
             composable(Destination.Calendar.route) { CalendarScreen() }
-            composable(Destination.Completed.route) { CompletedScreen() }
+            composable(Destination.Completed.route) {
+                CompletedScreen(
+                    onOpenAction = { id -> navController.navigate(Destination.ActionDetails.createRoute(id)) },
+                )
+            }
             composable(Destination.Settings.route) { SettingsScreen() }
-            composable(Destination.AddAction.route) {
+            composable(
+                route = Destination.AddAction.route,
+                arguments = listOf(
+                    navArgument(Destination.AddAction.ARG_ACTION_ID) {
+                        type = NavType.LongType
+                        defaultValue = -1L
+                    },
+                ),
+            ) {
                 AddActionScreen(
                     onBack = { navController.popBackStack() },
-                    onSave = { navController.popBackStack() },
+                    onSaved = { navController.popBackStack() },
+                )
+            }
+            composable(
+                route = Destination.ActionDetails.route,
+                arguments = listOf(
+                    navArgument(Destination.ActionDetails.ARG_ACTION_ID) { type = NavType.LongType },
+                ),
+            ) {
+                ActionDetailsScreen(
+                    onBack = { navController.popBackStack() },
+                    onEdit = { id -> navController.navigate(Destination.AddAction.createRoute(id)) },
+                    onDeleted = { navController.popBackStack() },
                 )
             }
         }

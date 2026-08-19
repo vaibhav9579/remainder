@@ -13,21 +13,29 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.remainder.app.ui.components.ActionCard
 import com.remainder.app.ui.components.RemainderCard
 import com.remainder.app.ui.components.RemainderEmptyState
 import com.remainder.app.ui.components.RemainderSectionHeader
 import com.remainder.app.ui.components.RemainderTextField
-import com.remainder.app.ui.theme.RemainderTheme
 import com.remainder.app.ui.theme.Spacing
 import java.time.LocalTime
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(
+    onOpenAction: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -43,13 +51,40 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             placeholder = "Search actions...",
         )
         Spacer(Modifier.height(Spacing.xl))
-        TodaySummaryCard(totalToday = 0, completedToday = 0)
+        TodaySummaryCard(
+            totalToday = uiState.todayActions.size,
+            completedToday = uiState.completedTodayCount,
+        )
         Spacer(Modifier.height(Spacing.xxl))
         RemainderSectionHeader(title = "Today's Actions")
-        RemainderEmptyState(message = "No actions for today yet.")
+        if (uiState.todayActions.isEmpty()) {
+            RemainderEmptyState(message = "No actions for today yet.")
+        } else {
+            uiState.todayActions.forEach { action ->
+                Spacer(Modifier.height(Spacing.sm))
+                ActionCard(
+                    action = action,
+                    categoryName = action.categoryId?.let { uiState.categoriesById[it]?.name },
+                    onClick = { onOpenAction(action.id) },
+                    onToggleComplete = { viewModel.onToggleComplete(action) },
+                )
+            }
+        }
         Spacer(Modifier.height(Spacing.xl))
         RemainderSectionHeader(title = "Upcoming")
-        RemainderEmptyState(message = "Nothing coming up.")
+        if (uiState.upcomingActions.isEmpty()) {
+            RemainderEmptyState(message = "Nothing coming up.")
+        } else {
+            uiState.upcomingActions.forEach { action ->
+                Spacer(Modifier.height(Spacing.sm))
+                ActionCard(
+                    action = action,
+                    categoryName = action.categoryId?.let { uiState.categoriesById[it]?.name },
+                    onClick = { onOpenAction(action.id) },
+                    onToggleComplete = { viewModel.onToggleComplete(action) },
+                )
+            }
+        }
         Spacer(Modifier.height(Spacing.huge))
     }
 }
@@ -94,13 +129,5 @@ private fun TodaySummaryCard(
                 .height(6.dp)
                 .clip(RoundedCornerShape(3.dp)),
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun HomeScreenPreview() {
-    RemainderTheme {
-        HomeScreen()
     }
 }
